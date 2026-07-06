@@ -6,4 +6,4 @@ src-tauri/target
 src-tauri/gen
 
 # Never touch real saves
-Vault
+dev-saves
