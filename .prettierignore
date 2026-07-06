@@ -1,0 +1,9 @@
+# Not ours to format / generated
+dist
+node_modules
+pnpm-lock.yaml
+src-tauri/target
+src-tauri/gen
+
+# Never touch real saves
+Vault
