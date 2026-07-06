@@ -1,49 +1,53 @@
-name: CI
+name: 🧪 CI
 
-# Runs our quality gates on every push to main and every pull request.
-# Lint / typecheck / clippy behave the same across OSes, so macOS alone is
-# enough (and cheaper) to catch regressions early.
 on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
 
 jobs:
   quality:
+    name: 🔍 Quality gates
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
 
-      - uses: actions/setup-node@v4
+      - name: 🟢 Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: 🦀 Setup Rust
+        uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
 
-      # Caches compiled Rust deps between runs so clippy stays fast.
-      - uses: swatinem/rust-cache@v2
+      - name: 💾 Cache Rust
+        uses: swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
 
-      - name: Install dependencies
+      - name: 📥 Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Prettier (format check)
+      - name: 🎨 Prettier (format check)
         run: pnpm format:check
 
-      - name: ESLint
+      - name: 🔎 ESLint
         run: pnpm lint
 
-      - name: TypeScript typecheck
+      - name: 🔷 TypeScript typecheck
         run: pnpm typecheck
 
-      - name: Rustfmt (format check)
+      - name: 🧹 Rustfmt (format check)
         run: pnpm rust:fmt:check
 
-      - name: Clippy
+      - name: 📎 Clippy
         run: pnpm rust:lint

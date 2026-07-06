@@ -1,47 +1,76 @@
-name: Release
+name: 🚀 Release
 
-# Builds the desktop app for macOS and Windows when a version tag is pushed
-# (e.g. `git tag v0.0.1 && git push origin v0.0.1`), then creates a DRAFT
-# GitHub Release with the .dmg / .msi artifacts for you to review and publish.
 on:
   push:
-    tags:
-      - "v*"
+    branches: [main]
 
 jobs:
+  check-version:
+    name: 🔎 Check version
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # we need all tags to know if this version already shipped
+
+      - name: 🔎 Read version and check tag
+        id: check
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            echo "Tag v$VERSION already exists — nothing to release."
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New version v$VERSION — will build and release."
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+          fi
+
   release:
+    name: 📦 Build & release
+    needs: check-version
+    if: needs.check-version.outputs.should_release == 'true'
     permissions:
-      contents: write # needed to create the GitHub Release
+      contents: write # needed to create the tag + GitHub Release
     strategy:
       fail-fast: false
       matrix:
         platform: [macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v4
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
 
-      - uses: actions/setup-node@v4
+      - name: 🟢 Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: 🦀 Setup Rust
+        uses: dtolnay/rust-toolchain@stable
 
-      - uses: swatinem/rust-cache@v2
+      - name: 💾 Cache Rust
+        uses: swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
 
-      - name: Install dependencies
+      - name: 📥 Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build the app and create the release
+      - name: 🏗️ Build the app and create the release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "ShelterBridge ${{ github.ref_name }}"
+          tagName: v${{ needs.check-version.outputs.version }}
+          releaseName: "ShelterBridge v${{ needs.check-version.outputs.version }}"
           releaseDraft: true
           prerelease: true
