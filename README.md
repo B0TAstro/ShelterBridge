@@ -662,6 +662,28 @@ A user can transfer or back up an Android Vault safely.
 
 ---
 
+## Version and release plan
+
+Phases map to app versions. Everything below `1.0.0` is pre-1.0, iterative development. `1.0.0` is the first stable, fully designed and functional release covering **macOS + Windows Steam**.
+
+| Version         | Scope                                                              | Phase   |
+| --------------- | ------------------------------------------------------------------ | ------- |
+| `v0.0.1`        | Project scaffold + CI/release pipeline                             | —       |
+| `v0.1.0`        | Import `.sav`, validate, SHA-256, decrypt + parse basic Vault info | Phase 0 |
+| `v0.2.0`        | Design system (tokens, TerminalPanel, VaultCard, scanlines)        | Phase 1 |
+| `v0.3.0`        | Target slot selection + safe backup + prepared export              | Phase 1 |
+| `v0.4.0`        | Guided iPhone (Finder) transfer + local history (macOS MVP)        | Phase 1 |
+| `v0.5.0`        | Windows Steam scan + iPhone prep + Steam Cloud warning             | Phase 2 |
+| `v1.0.0-beta.x` | Polish, real-save testing, accessibility                           | —       |
+| `v1.0.0` 🎉     | First stable release: macOS + Windows Steam                        | —       |
+| `v1.1.0`        | iPhone → desktop backup                                            | Phase 3 |
+| `v1.2.0`        | Experimental iPhone USB mode (falls back to assisted)              | Phase 4 |
+| `v2.0.0`        | Android support                                                    | Phase 5 |
+
+Releases are automated: bump `version` in `package.json` (and `src-tauri/tauri.conf.json`), push to `main`, and CI publishes the tagged release.
+
+---
+
 ## Design direction
 
 ShelterBridge can have a retro bunker / terminal-inspired interface, but it should not use official Fallout, Vault Boy, Pip-Boy, Vault-Tec, Bethesda, or ZeniMax assets.
@@ -767,3 +789,11 @@ ShelterBridge is an unofficial community tool intended for personal backup and t
 Always make backups before replacing any save file.
 
 Use at your own risk.
+
+---
+
+## License
+
+ShelterBridge is **source-available, not open source**. The source is public for transparency, and the released app is free to download and use, but all other rights are reserved. Copying, modifying, forking, redistributing, or any commercial use requires the author's prior written permission.
+
+See [LICENSE.md](LICENSE.md) for the full terms.
