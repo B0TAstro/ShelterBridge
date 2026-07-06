@@ -1,0 +1,6 @@
+# pnpm settings (pnpm 10+ reads project settings from here, not package.json).
+# Supply-chain security: build scripts are blocked by default. We explicitly
+# allow only the packages we trust and that genuinely need to build.
+# esbuild is Vite's native compiler; its build script installs the platform binary.
+allowBuilds:
+  esbuild: true
