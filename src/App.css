@@ -73,3 +73,20 @@ button:hover {
 .error {
   color: #e4572e;
 }
+
+.lang-switch {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.lang-switch button {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.85rem;
+  opacity: 0.55;
+}
+
+.lang-switch button.active {
+  opacity: 1;
+}

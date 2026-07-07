@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "ShelterBridge",
+    "tagline": "Importez un fichier Vault*.sav pour l'inspecter. Votre fichier original n'est jamais modifié.",
+    "chooseSave": "Choisir un fichier de sauvegarde…"
+  },
+  "vault": {
+    "heading": "Abri {{name}}",
+    "dwellers": "Résidents",
+    "caps": "Capsules",
+    "food": "Nourriture",
+    "water": "Eau",
+    "power": "Énergie",
+    "stimpaks": "Stimpaks",
+    "radaway": "RadAway",
+    "quantum": "Nuka-Cola Quantum",
+    "mrHandy": "Mr. Handy",
+    "lunchboxes": "Boîtes-repas",
+    "gameVersion": "Version du jeu"
+  },
+  "error": "Erreur : {{message}}"
+}

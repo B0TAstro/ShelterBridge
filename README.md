@@ -670,7 +670,7 @@ Phases map to app versions. Everything below `1.0.0` is pre-1.0, iterative devel
 | --------------- | ------------------------------------------------------------------ | ------- |
 | `v0.0.1`        | Project scaffold + CI/release pipeline                             | —       |
 | `v0.1.0`        | Import `.sav`, validate, SHA-256, decrypt + parse basic Vault info | Phase 0 |
-| `v0.2.0`        | Design system (tokens, TerminalPanel, VaultCard, scanlines)        | Phase 1 |
+| `v0.2.0`        | Design system (tokens, TerminalPanel, VaultCard, scanlines) + i18n | Phase 1 | <-- we are here
 | `v0.3.0`        | Target slot selection + safe backup + prepared export              | Phase 1 |
 | `v0.4.0`        | Guided iPhone (Finder) transfer + local history (macOS MVP)        | Phase 1 |
 | `v0.5.0`        | Windows Steam scan + iPhone prep + Steam Cloud warning             | Phase 2 |

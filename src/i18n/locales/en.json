@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "ShelterBridge",
+    "tagline": "Import a Vault*.sav file to inspect it. Your original file is never modified.",
+    "chooseSave": "Choose a save file…"
+  },
+  "vault": {
+    "heading": "Vault {{name}}",
+    "dwellers": "Dwellers",
+    "caps": "Caps",
+    "food": "Food",
+    "water": "Water",
+    "power": "Power",
+    "stimpaks": "Stimpaks",
+    "radaway": "RadAway",
+    "quantum": "Nuka-Cola Quantum",
+    "mrHandy": "Mr. Handy",
+    "lunchboxes": "Lunchboxes",
+    "gameVersion": "Game version"
+  },
+  "error": "Error: {{message}}"
+}
