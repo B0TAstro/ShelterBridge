@@ -11,7 +11,6 @@ import { Clock } from "./components/Clock";
 import { VolumeOnIcon, VolumeOffIcon } from "./components/icons";
 import { isMuted, setMuted, playBoot, playClick, playConfirm, playError } from "./lib/sound";
 import type { SaveInspection } from "./types";
-import "./App.css";
 
 const LANGS = ["en", "fr"] as const;
 

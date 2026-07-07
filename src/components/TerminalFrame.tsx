@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import "./TerminalFrame.css";
 
 /** Dashboard-style bezel: a title bar with a status dot, a body, and a footer. */
 export function TerminalFrame({

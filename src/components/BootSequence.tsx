@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 import { Typewriter } from "./Typewriter";
-import "./BootSequence.css";
 
 // Original stylised terminal boot text — no game assets or wording.
 const LINES = [

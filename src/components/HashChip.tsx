@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "./HashChip.css";
 
 export function HashChip({ label, value }: { label: string; value: string }) {
   const [copied, setCopied] = useState(false);

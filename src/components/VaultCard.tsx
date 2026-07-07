@@ -2,7 +2,6 @@ import { useTranslation } from "react-i18next";
 import type { SaveInspection } from "../types";
 import { TerminalPanel } from "./TerminalPanel";
 import { HashChip } from "./HashChip";
-import "./VaultCard.css";
 
 export function VaultCard({ inspection }: { inspection: SaveInspection }) {
   const { t, i18n } = useTranslation();

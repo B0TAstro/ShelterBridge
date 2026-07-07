@@ -1,0 +1,485 @@
+/* ============================================================
+   ShelterBridge — global stylesheet
+   Sections are separated by "#-----" banners for quick scanning.
+   ============================================================ */
+
+/* #----------------------------------------------------------
+   Design tokens (see DESIGN.md §3-6)
+   ---------------------------------------------------------- */
+:root {
+  /* Colors */
+  --sb-bg-deep: #0a0f0b;
+  --sb-bg-panel: #101711;
+  --sb-bg-panel-2: #16211a;
+  --sb-phosphor: #4de07a;
+  --sb-phosphor-dim: #2c7a47;
+  --sb-amber: #e8a33d;
+  --sb-danger: #e4572e;
+  --sb-text-soft: #c8d6c0;
+  --sb-text-mute: #7c8c78;
+  --sb-grid-line: rgba(77, 224, 122, 0.08);
+  --sb-glow: rgba(77, 224, 122, 0.35);
+
+  /* Typography */
+  --sb-font-mono: ui-monospace, "SF Mono", "Menlo", "Consolas", monospace;
+  --sb-font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Shape & spacing */
+  --sb-radius: 6px;
+  --sb-radius-sm: 3px;
+  --sb-border: 1px solid var(--sb-phosphor-dim);
+  --sb-space: 8px;
+  --sb-maxw: 720px;
+}
+
+/* #----------------------------------------------------------
+   Base / reset
+   ---------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--sb-bg-deep);
+  color: var(--sb-text-soft);
+  font-family: var(--sb-font-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--sb-font-mono);
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 10px var(--sb-glow);
+}
+
+/* #----------------------------------------------------------
+   CRT effects (scanlines + vignette + flicker)
+   ---------------------------------------------------------- */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.5;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--sb-grid-line) 0,
+    var(--sb-grid-line) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  animation: sb-flicker 7s infinite steps(60);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.5) 100%);
+}
+
+@keyframes sb-flicker {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  48% {
+    opacity: 0.44;
+  }
+  50% {
+    opacity: 0.56;
+  }
+  92% {
+    opacity: 0.47;
+  }
+}
+
+/* #----------------------------------------------------------
+   Terminal Frame (dashboard bezel)
+   ---------------------------------------------------------- */
+.sb-frame {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: var(--sb-border);
+  border-radius: var(--sb-radius);
+  background: linear-gradient(var(--sb-bg-panel), var(--sb-bg-deep));
+  box-shadow:
+    0 0 30px rgba(77, 224, 122, 0.06),
+    inset 0 0 60px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.sb-frame-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  border-bottom: var(--sb-border);
+  background: rgba(77, 224, 122, 0.03);
+  font-family: var(--sb-font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+}
+
+.sb-frame-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sb-phosphor);
+  box-shadow: 0 0 8px var(--sb-glow);
+  animation: sb-pulse 2s infinite ease-in-out;
+}
+
+@keyframes sb-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.sb-frame-title {
+  color: var(--sb-phosphor);
+}
+
+.sb-frame-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.75rem 1.75rem 2rem;
+}
+
+.sb-frame-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0.9rem;
+  border-top: var(--sb-border);
+  background: rgba(0, 0, 0, 0.2);
+  font-family: var(--sb-font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--sb-text-mute);
+}
+
+/* #----------------------------------------------------------
+   App shell (header, toolbar, language switch)
+   ---------------------------------------------------------- */
+.sb-app {
+  box-sizing: border-box;
+  height: 100%;
+  padding: 1.25rem;
+}
+
+.app-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.screen-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.4rem;
+  color: var(--sb-phosphor);
+}
+
+.tagline {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--sb-text-mute);
+}
+
+.toolbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem;
+  color: var(--sb-phosphor-dim);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  color: var(--sb-phosphor);
+}
+
+.lang-switch {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.lang-switch button {
+  font-family: var(--sb-font-mono);
+  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  color: var(--sb-text-mute);
+  background: transparent;
+  border: 1px solid var(--sb-phosphor-dim);
+  border-radius: var(--sb-radius-sm);
+  cursor: pointer;
+}
+
+.lang-switch button.active {
+  color: var(--sb-phosphor);
+  border-color: var(--sb-phosphor);
+}
+
+.error {
+  margin-top: 1rem;
+  color: var(--sb-danger);
+  font-family: var(--sb-font-mono);
+}
+
+.sb-status {
+  margin: 1.25rem 0 0.5rem;
+  font-family: var(--sb-font-mono);
+  font-size: 0.9rem;
+  color: var(--sb-phosphor);
+  text-shadow: 0 0 8px var(--sb-glow);
+}
+
+/* #----------------------------------------------------------
+   Title glitch (occasional RGB-split)
+   ---------------------------------------------------------- */
+.sb-glitch {
+  position: relative;
+}
+
+.sb-glitch::before,
+.sb-glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.sb-glitch::before {
+  color: #ff2e63;
+  animation: sb-glitch-a 6s infinite steps(2);
+}
+
+.sb-glitch::after {
+  color: #2ee6e6;
+  animation: sb-glitch-b 6s infinite steps(2);
+}
+
+@keyframes sb-glitch-a {
+  0%,
+  90%,
+  100% {
+    transform: translate(0);
+    opacity: 0;
+  }
+  92% {
+    transform: translate(-2px, 1px);
+    opacity: 0.75;
+  }
+  94% {
+    transform: translate(1px, -1px);
+    opacity: 0.75;
+  }
+}
+
+@keyframes sb-glitch-b {
+  0%,
+  90%,
+  100% {
+    transform: translate(0);
+    opacity: 0;
+  }
+  92% {
+    transform: translate(2px, -1px);
+    opacity: 0.75;
+  }
+  94% {
+    transform: translate(-1px, 1px);
+    opacity: 0.75;
+  }
+}
+
+/* #----------------------------------------------------------
+   Primary Button
+   ---------------------------------------------------------- */
+.sb-btn {
+  font-family: var(--sb-font-mono);
+  font-size: 0.95rem;
+  color: var(--sb-phosphor);
+  background: transparent;
+  border: 1px solid var(--sb-phosphor);
+  border-radius: var(--sb-radius);
+  padding: 0.6rem 1.1rem;
+  cursor: pointer;
+  transition:
+    box-shadow 150ms ease,
+    background 150ms ease;
+}
+
+.sb-btn:hover {
+  background: rgba(77, 224, 122, 0.08);
+  box-shadow: 0 0 12px var(--sb-glow);
+}
+
+.sb-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--sb-glow);
+}
+
+/* #----------------------------------------------------------
+   Terminal Panel
+   ---------------------------------------------------------- */
+.sb-panel {
+  position: relative;
+  background: var(--sb-bg-panel);
+  border: var(--sb-border);
+  border-radius: var(--sb-radius);
+  padding: calc(var(--sb-space) * 2.5) calc(var(--sb-space) * 3);
+  box-shadow:
+    inset 0 0 40px rgba(77, 224, 122, 0.05),
+    0 0 18px rgba(77, 224, 122, 0.05);
+}
+
+/* #----------------------------------------------------------
+   Vault Card
+   ---------------------------------------------------------- */
+.sb-vault-title {
+  margin: 0 0 1rem;
+  color: var(--sb-phosphor);
+}
+
+.sb-vault-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.4rem 1.5rem;
+  margin: 0 0 1.25rem;
+}
+
+.sb-stat {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--sb-grid-line);
+  font-family: var(--sb-font-mono);
+  font-size: 0.9rem;
+}
+
+.sb-stat dt {
+  color: var(--sb-text-mute);
+}
+
+.sb-stat dd {
+  margin: 0;
+  color: var(--sb-text-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* #----------------------------------------------------------
+   Hash Chip
+   ---------------------------------------------------------- */
+.sb-hash {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  font-family: var(--sb-font-mono);
+  font-size: 0.75rem;
+  color: var(--sb-text-mute);
+  background: var(--sb-bg-panel-2);
+  border: 1px solid var(--sb-phosphor-dim);
+  border-radius: var(--sb-radius-sm);
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+}
+
+.sb-hash:hover {
+  border-color: var(--sb-phosphor);
+}
+
+.sb-hash code {
+  word-break: break-all;
+  text-align: left;
+}
+
+.sb-hash-label {
+  flex-shrink: 0;
+  color: var(--sb-phosphor-dim);
+}
+
+.sb-hash-copied {
+  color: var(--sb-phosphor);
+}
+
+/* #----------------------------------------------------------
+   Boot Sequence
+   ---------------------------------------------------------- */
+.sb-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sb-bg-deep);
+  cursor: pointer;
+}
+
+.sb-boot-inner {
+  min-width: 320px;
+  font-family: var(--sb-font-mono);
+  color: var(--sb-phosphor);
+  text-shadow: 0 0 8px var(--sb-glow);
+}
+
+.sb-boot-line {
+  padding: 0.15rem 0;
+}
+
+.sb-boot-hint {
+  margin-top: 1.25rem;
+  color: var(--sb-text-mute);
+  font-size: 0.75rem;
+  text-shadow: none;
+}
+
+/* #----------------------------------------------------------
+   Reduced motion — disable all animations/transitions
+   ---------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

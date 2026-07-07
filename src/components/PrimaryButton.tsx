@@ -1,5 +1,4 @@
 import type { ButtonHTMLAttributes } from "react";
-import "./PrimaryButton.css";
 
 export function PrimaryButton({
   className = "",
