@@ -3,5 +3,7 @@ export * from "./PrimaryButton";
 export * from "./TerminalPanel";
 export * from "./HashChip";
 export * from "./Typewriter";
+export * from "./StepGuide";
+export * from "./Modal";
 export * from "./Clock";
 export * from "./icons";

@@ -15,6 +15,24 @@
   "report": {
     "screenTitle": "Rapport de transfert"
   },
+  "history": {
+    "cta": "Historique",
+    "screenTitle": "Historique des transferts",
+    "empty": "Aucun transfert pour l'instant."
+  },
+  "guide": {
+    "title": "Transférer vers ton iPhone (Finder)",
+    "steps": [
+      "Branche ton iPhone à ce Mac avec un câble.",
+      "Déverrouille l'iPhone et touche « Se fier à cet ordinateur » si demandé.",
+      "Ferme complètement Fallout Shelter sur l'iPhone.",
+      "Ouvre le Finder et sélectionne ton iPhone dans la barre latérale.",
+      "Ouvre la section « Fichiers » (partage de fichiers).",
+      "Sélectionne Fallout Shelter dans la liste des apps.",
+      "Glisse le VaultX.sav préparé dans les documents de l'app.",
+      "Lance Fallout Shelter sur l'iPhone et vérifie le slot."
+    ]
+  },
   "vault": {
     "heading": "Abri {{name}}",
     "dwellers": "Résidents",

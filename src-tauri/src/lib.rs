@@ -1,5 +1,8 @@
 pub mod backup;
+pub mod history;
 pub mod save;
+
+use std::path::{Path, PathBuf};
 
 use save::SaveInspection;
 use tauri::Manager;
@@ -10,6 +13,14 @@ use tauri::Manager;
 fn read_save(path: String) -> Result<SaveInspection, String> {
     let bytes = std::fs::read(&path).map_err(|e| format!("cannot read file: {e}"))?;
     save::inspect_save(&bytes)
+}
+
+fn history_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("cannot locate app data dir: {e}"))?;
+    Ok(dir.join("history.json"))
 }
 
 /// Prepare a save for the chosen slot (1-3) inside a timestamped folder under
@@ -26,7 +37,20 @@ fn prepare_transfer(
         .document_dir()
         .map_err(|e| format!("cannot locate Documents folder: {e}"))?;
     let backup_dir = docs.join("ShelterBridge Backups").join(&stamp);
-    backup::prepare_transfer(std::path::Path::new(&source_path), slot, &backup_dir, stamp)
+    let report = backup::prepare_transfer(Path::new(&source_path), slot, &backup_dir, stamp)?;
+
+    // Record in local history (best-effort: the transfer itself already succeeded).
+    if let Ok(path) = history_path(&app) {
+        let _ = history::append(&path, &report);
+    }
+
+    Ok(report)
+}
+
+/// List all previously recorded transfers, newest handling left to the frontend.
+#[tauri::command]
+fn list_history(app: tauri::AppHandle) -> Result<Vec<backup::TransferReport>, String> {
+    history::read(&history_path(&app)?)
 }
 
 /// Open a folder in the OS file manager (Finder / Explorer / files).
@@ -47,6 +71,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             read_save,
             prepare_transfer,
+            list_history,
             open_folder
         ])
         .run(tauri::generate_context!())

@@ -173,14 +173,48 @@ body::after {
 
 .sb-frame-footer {
   display: flex;
+  align-items: stretch;
   justify-content: space-between;
-  padding: 0.5rem 0.9rem;
+  padding: 0 0.9rem;
   border-top: var(--sb-border);
   background: rgba(0, 0, 0, 0.2);
   font-family: var(--sb-font-mono);
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   color: var(--sb-text-mute);
+}
+
+.footer-info {
+  display: flex;
+  align-items: center;
+}
+
+.footer-right {
+  display: flex;
+  align-items: stretch;
+}
+
+.footer-cell {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.9rem;
+}
+
+/* History link: enclosed by full-height dividers, next to the clock. */
+.footer-hist {
+  font: inherit;
+  letter-spacing: inherit;
+  color: var(--sb-text-mute);
+  background: transparent;
+  border-top: none;
+  border-bottom: none;
+  border-left: var(--sb-border);
+  border-right: var(--sb-border);
+  cursor: pointer;
+}
+
+.footer-hist:hover {
+  color: var(--sb-phosphor);
 }
 
 /* #----------------------------------------------------------
@@ -204,6 +238,127 @@ body::after {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.screen-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.screen-title-row .screen-title {
+  margin-bottom: 0;
+}
+
+/* Modal dialog */
+.sb-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.sb-modal {
+  width: 100%;
+  max-width: 560px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--sb-bg-panel);
+  border: var(--sb-border);
+  border-radius: var(--sb-radius);
+  box-shadow: 0 0 30px var(--sb-glow);
+}
+
+.sb-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: var(--sb-border);
+}
+
+.sb-modal-head h3 {
+  margin: 0;
+  color: var(--sb-phosphor);
+}
+
+.sb-modal-body {
+  padding: 1rem;
+}
+
+/* Guided step list */
+.step-guide {
+  counter-reset: step;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step-guide li {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--sb-grid-line);
+  font-family: var(--sb-font-mono);
+  font-size: 0.9rem;
+}
+
+.step-guide li::before {
+  counter-increment: step;
+  content: counter(step);
+  min-width: 1.5em;
+  color: var(--sb-phosphor-dim);
+}
+
+.step-guide label {
+  display: flex;
+  flex: 1;
+  gap: 0.6rem;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.step-guide input {
+  margin-top: 0.2rem;
+  accent-color: var(--sb-phosphor);
+}
+
+.step-guide li.done span {
+  color: var(--sb-text-mute);
+  text-decoration: line-through;
+}
+
+/* Transfer history list */
+.history-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--sb-grid-line);
+}
+
+.history-slot {
+  font-family: var(--sb-font-mono);
+  color: var(--sb-phosphor);
+}
+
+.history-stamp {
+  font-family: var(--sb-font-mono);
+  font-size: 0.8rem;
+  color: var(--sb-text-mute);
 }
 
 .screen-title {

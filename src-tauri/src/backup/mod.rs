@@ -5,11 +5,11 @@
 use std::fs;
 use std::path::Path;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::save::{inspect_save, sha256_hex};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransferReport {
     pub stamp: String,
     pub source_file: String,

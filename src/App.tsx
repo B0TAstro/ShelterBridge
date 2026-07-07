@@ -8,14 +8,15 @@ import { Clock, VolumeOnIcon, VolumeOffIcon } from "./components/shared";
 import { InspectScreen } from "./screens/InspectScreen";
 import { TransferScreen } from "./screens/TransferScreen";
 import { ReportScreen } from "./screens/ReportScreen";
+import { HistoryScreen } from "./screens/HistoryScreen";
 import { isMuted, setMuted, playBoot, playClick, playConfirm, playError } from "./lib/sound";
 import type { SaveInspection, TransferReport } from "./types";
 
 const LANGS = ["en", "fr"] as const;
-type Screen = "inspect" | "transfer" | "report";
+type Screen = "inspect" | "transfer" | "report" | "history";
 
 function App() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [booted, setBooted] = useState(false);
   const [muted, setMutedState] = useState(isMuted());
   const [screen, setScreen] = useState<Screen>("inspect");
@@ -110,6 +111,8 @@ function App() {
     );
   } else if (screen === "report" && report) {
     content = <ReportScreen report={report} onBack={() => setScreen("transfer")} />;
+  } else if (screen === "history") {
+    content = <HistoryScreen onBack={() => setScreen("inspect")} />;
   } else {
     content = (
       <InspectScreen
@@ -129,8 +132,15 @@ function App() {
         toolbar={toolbar}
         footer={
           <>
-            <span>LOCAL-FIRST · NO NETWORK</span>
-            <Clock />
+            <span className="footer-info">LOCAL-FIRST · NO NETWORK</span>
+            <div className="footer-right">
+              <button className="footer-cell footer-hist" onClick={() => setScreen("history")}>
+                {t("history.cta")}
+              </button>
+              <span className="footer-cell">
+                <Clock />
+              </span>
+            </div>
           </>
         }
       >
