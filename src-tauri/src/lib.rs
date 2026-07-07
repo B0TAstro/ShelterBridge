@@ -78,6 +78,15 @@ fn open_folder(app: tauri::AppHandle, path: String) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
+/// Reveal a file in the OS file manager (opens its folder and selects it).
+#[tauri::command]
+fn reveal_file(app: tauri::AppHandle, path: String) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    app.opener()
+        .reveal_item_in_dir(path)
+        .map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -88,7 +97,8 @@ pub fn run() {
             prepare_transfer,
             list_history,
             scan_saves,
-            open_folder
+            open_folder,
+            reveal_file
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

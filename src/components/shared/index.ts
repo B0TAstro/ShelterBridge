@@ -4,6 +4,7 @@ export * from "./TerminalPanel";
 export * from "./HashChip";
 export * from "./Typewriter";
 export * from "./StepGuide";
+export * from "./ScanLoader";
 export * from "./Modal";
 export * from "./Clock";
 export * from "./icons";

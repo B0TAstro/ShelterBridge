@@ -11,13 +11,15 @@
   "inspect": {
     "transferCta": "Transfert de vault",
     "clear": "Retirer la save",
-    "scan": "Scanner cet ordinateur",
     "scanFolder": "Scanner un dossier…",
-    "scanning": "Analyse en cours…",
+    "scanning": "Recherche de saves locales…",
+    "found": "{{count}} save(s) trouvée(s)",
     "noSaves": "Aucune save Fallout Shelter locale détectée. Importe-en une manuellement."
   },
   "report": {
-    "screenTitle": "Rapport de transfert"
+    "screenTitle": "Rapport de transfert",
+    "manualTitle": "Transfert manuel",
+    "manualHint": "Aucun jeu local détecté — copie cette save sur ton iPhone manuellement (voir le guide)."
   },
   "history": {
     "cta": "Historique",
@@ -63,6 +65,7 @@
     "done": "{{slot}} préparé — une copie sûre ; votre original est intact.",
     "slotFile": "Fichier préparé",
     "folder": "Dossier de backup",
-    "openFolder": "Ouvrir le dossier"
+    "openFolder": "Ouvrir le dossier",
+    "sourceFile": "Fichier :"
   }
 }

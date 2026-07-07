@@ -115,8 +115,15 @@ function App() {
         }}
       />
     );
-  } else if (screen === "report" && report) {
-    content = <ReportScreen report={report} onBack={() => setScreen("transfer")} />;
+  } else if (screen === "report") {
+    content = (
+      <ReportScreen
+        report={report}
+        inspection={inspection}
+        sourcePath={sourcePath}
+        onBack={() => setScreen(report ? "transfer" : "inspect")}
+      />
+    );
   } else if (screen === "history") {
     content = <HistoryScreen onBack={() => setScreen("inspect")} />;
   } else {
@@ -126,8 +133,17 @@ function App() {
         error={loadError}
         onChoose={loadSave}
         onClear={clearSave}
-        onGoTransfer={() => setScreen("transfer")}
         onSelectSave={selectSave}
+        onGoTransfer={(detected) => {
+          if (detected) {
+            setScreen("transfer");
+          } else {
+            // No game detected → nothing is prepared: show the manual guide,
+            // never a stale report.
+            setReport(null);
+            setScreen("report");
+          }
+        }}
       />
     );
   }

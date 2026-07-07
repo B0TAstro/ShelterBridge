@@ -1,56 +1,66 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import type { FoundSave, SaveInspection } from "../types";
-import { PrimaryButton, Typewriter, CloseIcon } from "../components/shared";
+import { PrimaryButton, Typewriter, ScanLoader, CloseIcon } from "../components/shared";
 import { VaultCard } from "../components/vault";
 import { playClick, playConfirm } from "../lib/sound";
 
-/** Screen 1: import or scan for a save, then inspect it. The loaded save lives
- * in App and is shared with the transfer screen. */
+/** Screen 1: auto-scans the default location on arrival. Whether the game is
+ * detected there decides where the transfer button leads. */
 export function InspectScreen({
   inspection,
   error,
   onChoose,
   onClear,
-  onGoTransfer,
   onSelectSave,
+  onGoTransfer,
 }: {
   inspection: SaveInspection | null;
   error: string | null;
   onChoose: () => void;
   onClear: () => void;
-  onGoTransfer: () => void;
   onSelectSave: (path: string, inspection: SaveInspection) => void;
+  onGoTransfer: (gameDetected: boolean) => void;
 }) {
   const { t } = useTranslation();
-  const [scanned, setScanned] = useState<FoundSave[] | null>(null);
-  const [scanning, setScanning] = useState(false);
+  const [scanned, setScanned] = useState<FoundSave[] | null>(null); // null = scanning
+  const [gameDetected, setGameDetected] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
 
-  async function scan(dir?: string) {
-    playClick();
-    setScanning(true);
-    setScanError(null);
-    try {
-      setScanned(await invoke<FoundSave[]>("scan_saves", { dir: dir ?? null }));
-    } catch (e) {
-      setScanned([]);
-      setScanError(String(e));
-    } finally {
-      setScanning(false);
-    }
-  }
+  // Auto-scan the default Steam location on arrival. A hit there = the game is
+  // installed on this PC → the transfer can offer slot selection (screen 2).
+  // A chosen folder or a manual file is just an import → transfer goes to the
+  // manual guide (screen 3).
+  useEffect(() => {
+    invoke<FoundSave[]>("scan_saves", { dir: null })
+      .then((r) => {
+        setScanned(r);
+        setGameDetected(r.length > 0);
+      })
+      .catch((e) => {
+        setScanned([]);
+        setScanError(String(e));
+      });
+  }, []);
 
   async function scanFolder() {
     const dir = await open({ directory: true });
-    if (typeof dir === "string") await scan(dir);
+    if (typeof dir !== "string") return;
+    playClick();
+    setScanError(null);
+    setScanned(null);
+    try {
+      setScanned(await invoke<FoundSave[]>("scan_saves", { dir }));
+    } catch (e) {
+      setScanned([]);
+      setScanError(String(e));
+    }
   }
 
   function select(f: FoundSave) {
     playConfirm();
-    setScanned(null);
     onSelectSave(f.path, f.inspection);
   }
 
@@ -64,20 +74,15 @@ export function InspectScreen({
           <p className="tagline">{t("app.tagline")}</p>
         </div>
         {inspection && (
-          <PrimaryButton variant="secondary" onClick={onGoTransfer}>
+          <PrimaryButton variant="secondary" onClick={() => onGoTransfer(gameDetected)}>
             {t("inspect.transferCta")} →
           </PrimaryButton>
         )}
       </header>
 
       <div className="choose-row">
+        <PrimaryButton onClick={scanFolder}>{t("inspect.scanFolder")}</PrimaryButton>
         <PrimaryButton onClick={onChoose}>{t("app.chooseSave")}</PrimaryButton>
-        <PrimaryButton variant="secondary" onClick={() => scan()}>
-          {t("inspect.scan")}
-        </PrimaryButton>
-        <PrimaryButton variant="secondary" onClick={scanFolder}>
-          {t("inspect.scanFolder")}
-        </PrimaryButton>
         {inspection && (
           <PrimaryButton
             variant="secondary"
@@ -90,36 +95,40 @@ export function InspectScreen({
         )}
       </div>
 
-      {scanning && <p className="sb-status">{t("inspect.scanning")}</p>}
-      {scanError && <p className="error">{t("error", { message: scanError })}</p>}
       {error && <p className="error">{t("error", { message: error })}</p>}
+      {scanError && <p className="error">{t("error", { message: scanError })}</p>}
 
-      {!inspection && !scanning && scanned?.length === 0 && (
-        <p className="tagline">{t("inspect.noSaves")}</p>
-      )}
-
-      {!inspection && scanned && scanned.length > 0 && (
-        <div className="scan-results">
-          {scanned.map((f) => (
-            <button key={f.path} className="scan-card" onClick={() => select(f)}>
-              <span className="scan-card-vault">
-                {t("vault.heading", { name: f.inspection.vault.vault_name })}
-              </span>
-              <span className="scan-card-file">{f.file}</span>
-              <span className="scan-card-meta">
-                {t("vault.dwellers")}: {f.inspection.vault.dweller_count}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {inspection && (
+      {inspection ? (
         <>
           <p className="sb-status">
             <Typewriter key={inspection.sha256} text={t("system.decoded")} />
           </p>
           <VaultCard inspection={inspection} />
+        </>
+      ) : scanned === null ? (
+        <ScanLoader label={t("inspect.scanning")} />
+      ) : (
+        <>
+          <p className="scan-count">
+            {scanned.length > 0
+              ? t("inspect.found", { count: scanned.length })
+              : t("inspect.noSaves")}
+          </p>
+          {scanned.length > 0 && (
+            <div className="scan-results">
+              {scanned.map((f) => (
+                <button key={f.path} className="scan-card" onClick={() => select(f)}>
+                  <span className="scan-card-vault">
+                    {t("vault.heading", { name: f.inspection.vault.vault_name })}
+                  </span>
+                  <span className="scan-card-file">{f.file}</span>
+                  <span className="scan-card-meta">
+                    {t("vault.dwellers")}: {f.inspection.vault.dweller_count}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </>
       )}
     </section>
