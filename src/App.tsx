@@ -1,49 +1,77 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
+import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+type VaultInfo = {
+  vault_name: string;
+  app_version: string | null;
+  dweller_count: number;
+  caps: number;
+  food: number;
+  water: number;
+  power: number;
+  stimpaks: number;
+  radaway: number;
+  nuka_quantum: number;
+  mr_handy: number;
+  lunchboxes: number;
+};
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
+type SaveInspection = {
+  sha256: string;
+  vault: VaultInfo;
+};
+
+function App() {
+  const [inspection, setInspection] = useState<SaveInspection | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function chooseSave() {
+    setError(null);
+    const path = await open({
+      multiple: false,
+      filters: [{ name: "Fallout Shelter save", extensions: ["sav"] }],
+    });
+    if (typeof path !== "string") return; // user cancelled
+
+    try {
+      setInspection(await invoke<SaveInspection>("read_save", { path }));
+    } catch (e) {
+      setInspection(null);
+      setError(String(e));
+    }
   }
 
   return (
     <main className="container">
-      <h1>Welcome to Tauri + React</h1>
+      <h1>ShelterBridge</h1>
+      <p className="tagline">
+        Import a Vault*.sav file to inspect it. Your original file is never modified.
+      </p>
+      <button onClick={chooseSave}>Choose a save file…</button>
 
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
+      {error && <p className="error">Error: {error}</p>}
 
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
+      {inspection && (
+        <section className="vault">
+          <h2>Vault {inspection.vault.vault_name}</h2>
+          <ul>
+            <li>Dwellers: {inspection.vault.dweller_count}</li>
+            <li>Caps: {inspection.vault.caps.toLocaleString()}</li>
+            <li>Food: {inspection.vault.food.toLocaleString()}</li>
+            <li>Water: {inspection.vault.water.toLocaleString()}</li>
+            <li>Power: {inspection.vault.power.toLocaleString()}</li>
+            <li>Stimpaks: {inspection.vault.stimpaks}</li>
+            <li>RadAway: {inspection.vault.radaway}</li>
+            <li>Nuka-Cola Quantum: {inspection.vault.nuka_quantum}</li>
+            <li>Mr. Handy: {inspection.vault.mr_handy}</li>
+            <li>Lunchboxes: {inspection.vault.lunchboxes}</li>
+            {inspection.vault.app_version && <li>Game version: {inspection.vault.app_version}</li>}
+          </ul>
+          <p className="hash">SHA-256: {inspection.sha256}</p>
+        </section>
+      )}
     </main>
   );
 }
