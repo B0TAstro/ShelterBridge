@@ -1,9 +1,19 @@
 {
+  "common": {
+    "back": "Retour"
+  },
   "app": {
     "title": "ShelterBridge",
     "screenTitle": "Analyse de sauvegarde",
     "tagline": "Importez un fichier Vault*.sav pour l'inspecter. Votre fichier original n'est jamais modifié.",
     "chooseSave": "Choisir un fichier de sauvegarde…"
+  },
+  "inspect": {
+    "transferCta": "Transfert de vault",
+    "clear": "Retirer la save"
+  },
+  "report": {
+    "screenTitle": "Rapport de transfert"
   },
   "vault": {
     "heading": "Abri {{name}}",
@@ -22,5 +32,15 @@
   "error": "Erreur : {{message}}",
   "system": {
     "decoded": "> Données de l'abri décodées — fichier original intact."
+  },
+  "transfer": {
+    "screenTitle": "Transfert de vault",
+    "tagline": "Choisis un slot cible. ShelterBridge crée une copie sûre — ton original n'est jamais touché.",
+    "chooseSlot": "Slot cible",
+    "prepare": "Préparer",
+    "done": "{{slot}} préparé — une copie sûre ; votre original est intact.",
+    "slotFile": "Fichier préparé",
+    "folder": "Dossier de backup",
+    "openFolder": "Ouvrir le dossier"
   }
 }

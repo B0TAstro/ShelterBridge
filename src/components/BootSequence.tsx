@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
-import { Typewriter } from "./Typewriter";
+import { Typewriter } from "./shared";
 
 // Original stylised terminal boot text — no game assets or wording.
 const LINES = [

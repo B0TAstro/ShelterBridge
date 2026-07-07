@@ -29,12 +29,26 @@ fn prepare_transfer(
     backup::prepare_transfer(std::path::Path::new(&source_path), slot, &backup_dir, stamp)
 }
 
+/// Open a folder in the OS file manager (Finder / Explorer / files).
+/// Runs via the opener plugin from Rust, so it needs no JS-side permission.
+#[tauri::command]
+fn open_folder(app: tauri::AppHandle, path: String) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    app.opener()
+        .open_path(path, None::<&str>)
+        .map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![read_save, prepare_transfer])
+        .invoke_handler(tauri::generate_handler![
+            read_save,
+            prepare_transfer,
+            open_folder
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

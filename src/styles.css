@@ -192,12 +192,18 @@ body::after {
   padding: 1.25rem;
 }
 
-.app-header {
+.screen-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.choose-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .screen-title {
@@ -212,11 +218,12 @@ body::after {
   color: var(--sb-text-mute);
 }
 
-.toolbar {
+.sb-frame-toolbar {
   display: flex;
   flex-shrink: 0;
   align-items: center;
   gap: 0.6rem;
+  margin-left: auto;
 }
 
 .icon-btn {
@@ -332,6 +339,10 @@ body::after {
    Primary Button
    ---------------------------------------------------------- */
 .sb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   font-family: var(--sb-font-mono);
   font-size: 0.95rem;
   color: var(--sb-phosphor);
@@ -342,17 +353,48 @@ body::after {
   cursor: pointer;
   transition:
     box-shadow 150ms ease,
-    background 150ms ease;
+    background 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
+}
+
+/* Secondary: dimmer, smaller — for "Vault transfer", "Back", the clear (X). */
+.sb-btn--secondary {
+  font-size: 0.85rem;
+  padding: 0.45rem 0.9rem;
+  color: var(--sb-phosphor-dim);
+  border-color: var(--sb-phosphor-dim);
+}
+
+/* Icon-only square button (e.g. the clear X). */
+.sb-btn--icon {
+  padding: 0.5rem;
 }
 
 .sb-btn:hover {
+  color: var(--sb-phosphor);
   background: rgba(77, 224, 122, 0.08);
+  border-color: var(--sb-phosphor);
   box-shadow: 0 0 12px var(--sb-glow);
 }
 
 .sb-btn:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--sb-glow);
+}
+
+.sb-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sb-btn:disabled:hover {
+  background: transparent;
+  box-shadow: none;
+}
+
+.sb-btn.back {
+  margin-bottom: 1.25rem;
 }
 
 /* #----------------------------------------------------------
@@ -402,6 +444,105 @@ body::after {
   margin: 0;
   color: var(--sb-text-soft);
   font-variant-numeric: tabular-nums;
+}
+
+/* #----------------------------------------------------------
+   Transfer (slot selector + report)
+   ---------------------------------------------------------- */
+.transfer-slots {
+  margin: 1.5rem 0;
+}
+
+.section-title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: var(--sb-phosphor);
+}
+
+.slot-selector {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.slot-bay {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 1.4rem 1rem;
+  font-family: var(--sb-font-mono);
+  color: var(--sb-text-mute);
+  background: var(--sb-bg-panel-2);
+  border: 1px solid var(--sb-phosphor-dim);
+  border-radius: var(--sb-radius);
+  cursor: pointer;
+  transition:
+    box-shadow 150ms ease,
+    border-color 150ms ease;
+}
+
+.slot-bay:hover {
+  border-color: var(--sb-phosphor);
+}
+
+.slot-bay.active {
+  color: var(--sb-phosphor);
+  border-color: var(--sb-phosphor);
+  box-shadow:
+    0 0 12px var(--sb-glow),
+    inset 0 0 20px rgba(77, 224, 122, 0.06);
+}
+
+.slot-num {
+  font-size: 1.9rem;
+}
+
+/* Collapsible Vault recap (transfer screen) */
+.vault-recap {
+  margin: 1.25rem 0;
+  border: var(--sb-border);
+  border-radius: var(--sb-radius);
+  background: var(--sb-bg-panel);
+}
+
+.vault-recap > summary {
+  padding: 0.75rem 1rem;
+  font-family: var(--sb-font-mono);
+  color: var(--sb-phosphor);
+  cursor: pointer;
+  list-style: none;
+}
+
+.vault-recap > summary::-webkit-details-marker {
+  display: none;
+}
+
+.vault-recap > summary::before {
+  content: "▸ ";
+  color: var(--sb-phosphor-dim);
+}
+
+.vault-recap[open] > summary::before {
+  content: "▾ ";
+}
+
+.vault-recap-body {
+  padding: 0 1rem 1rem;
+}
+
+.slot-file {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.transfer-actions {
+  margin-top: 1rem;
+}
+
+.path {
+  word-break: break-all;
 }
 
 /* #----------------------------------------------------------

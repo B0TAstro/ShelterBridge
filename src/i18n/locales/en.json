@@ -1,9 +1,19 @@
 {
+  "common": {
+    "back": "Back"
+  },
   "app": {
     "title": "ShelterBridge",
     "screenTitle": "Save analysis",
     "tagline": "Import a Vault*.sav file to inspect it. Your original file is never modified.",
     "chooseSave": "Choose a save file…"
+  },
+  "inspect": {
+    "transferCta": "Vault transfer",
+    "clear": "Clear save"
+  },
+  "report": {
+    "screenTitle": "Transfer report"
   },
   "vault": {
     "heading": "Vault {{name}}",
@@ -22,5 +32,15 @@
   "error": "Error: {{message}}",
   "system": {
     "decoded": "> Vault data decoded — original file untouched."
+  },
+  "transfer": {
+    "screenTitle": "Vault transfer",
+    "tagline": "Choose a target slot. ShelterBridge creates a safe copy — your original is never touched.",
+    "chooseSlot": "Target slot",
+    "prepare": "Prepare",
+    "done": "Prepared {{slot}} — a safe copy; your original is untouched.",
+    "slotFile": "Prepared file",
+    "folder": "Backup folder",
+    "openFolder": "Open folder"
   }
 }

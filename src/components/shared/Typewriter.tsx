@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
+import { usePrefersReducedMotion } from "../../hooks/usePrefersReducedMotion";
 
 /** Types `text` out character by character. Shows it instantly if the user
  * prefers reduced motion. To retype when the text changes, give it a `key`. */
@@ -13,7 +13,6 @@ export function Typewriter({
   className?: string;
 }) {
   const reduced = usePrefersReducedMotion();
-  // Start full when reduced-motion is on; otherwise start empty and type in.
   const [shown, setShown] = useState(reduced ? text : "");
 
   useEffect(() => {
@@ -21,7 +20,7 @@ export function Typewriter({
     let i = 0;
     const id = window.setInterval(() => {
       i += 1;
-      setShown(text.slice(0, i)); // runs in a timer callback, not synchronously
+      setShown(text.slice(0, i));
       if (i >= text.length) window.clearInterval(id);
     }, speed);
     return () => window.clearInterval(id);

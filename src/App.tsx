@@ -2,42 +2,56 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
-import { PrimaryButton } from "./components/PrimaryButton";
-import { VaultCard } from "./components/VaultCard";
-import { BootSequence } from "./components/BootSequence";
-import { Typewriter } from "./components/Typewriter";
 import { TerminalFrame } from "./components/TerminalFrame";
-import { Clock } from "./components/Clock";
-import { VolumeOnIcon, VolumeOffIcon } from "./components/icons";
+import { BootSequence } from "./components/BootSequence";
+import { Clock, VolumeOnIcon, VolumeOffIcon } from "./components/shared";
+import { InspectScreen } from "./screens/InspectScreen";
+import { TransferScreen } from "./screens/TransferScreen";
+import { ReportScreen } from "./screens/ReportScreen";
 import { isMuted, setMuted, playBoot, playClick, playConfirm, playError } from "./lib/sound";
-import type { SaveInspection } from "./types";
+import type { SaveInspection, TransferReport } from "./types";
 
 const LANGS = ["en", "fr"] as const;
+type Screen = "inspect" | "transfer" | "report";
 
 function App() {
-  const { t, i18n } = useTranslation();
-  const [inspection, setInspection] = useState<SaveInspection | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { i18n } = useTranslation();
   const [booted, setBooted] = useState(false);
   const [muted, setMutedState] = useState(isMuted());
+  const [screen, setScreen] = useState<Screen>("inspect");
 
-  async function chooseSave() {
+  // The loaded save is shared across screens (inspect + transfer).
+  const [sourcePath, setSourcePath] = useState<string | null>(null);
+  const [inspection, setInspection] = useState<SaveInspection | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [report, setReport] = useState<TransferReport | null>(null);
+
+  async function loadSave() {
     playClick();
-    setError(null);
+    setLoadError(null);
     const path = await open({
       multiple: false,
       filters: [{ name: "Fallout Shelter save", extensions: ["sav"] }],
     });
-    if (typeof path !== "string") return; // user cancelled
+    if (typeof path !== "string") return;
 
     try {
-      setInspection(await invoke<SaveInspection>("read_save", { path }));
+      const result = await invoke<SaveInspection>("read_save", { path });
+      setSourcePath(path);
+      setInspection(result);
       playConfirm();
     } catch (e) {
+      setSourcePath(null);
       setInspection(null);
-      setError(String(e));
+      setLoadError(String(e));
       playError();
     }
+  }
+
+  function clearSave() {
+    setSourcePath(null);
+    setInspection(null);
+    setLoadError(null);
   }
 
   function changeLang(lng: string) {
@@ -62,10 +76,57 @@ function App() {
     );
   }
 
+  const toolbar = (
+    <>
+      <button className="icon-btn" onClick={toggleMute} aria-label="toggle sound">
+        {muted ? <VolumeOffIcon /> : <VolumeOnIcon />}
+      </button>
+      <div className="lang-switch">
+        {LANGS.map((lng) => (
+          <button
+            key={lng}
+            className={i18n.language.startsWith(lng) ? "active" : ""}
+            onClick={() => changeLang(lng)}
+          >
+            {lng.toUpperCase()}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+
+  let content;
+  if (screen === "transfer" && inspection && sourcePath) {
+    content = (
+      <TransferScreen
+        sourcePath={sourcePath}
+        vault={inspection.vault}
+        onBack={() => setScreen("inspect")}
+        onPrepared={(r) => {
+          setReport(r);
+          setScreen("report");
+        }}
+      />
+    );
+  } else if (screen === "report" && report) {
+    content = <ReportScreen report={report} onBack={() => setScreen("transfer")} />;
+  } else {
+    content = (
+      <InspectScreen
+        inspection={inspection}
+        error={loadError}
+        onChoose={loadSave}
+        onClear={clearSave}
+        onGoTransfer={() => setScreen("transfer")}
+      />
+    );
+  }
+
   return (
     <div className="sb-app">
       <TerminalFrame
         title="SHELTERBRIDGE // LOCAL VAULT INTERFACE"
+        toolbar={toolbar}
         footer={
           <>
             <span>LOCAL-FIRST · NO NETWORK</span>
@@ -73,42 +134,7 @@ function App() {
           </>
         }
       >
-        <header className="app-header">
-          <div className="brand">
-            <h1 className="screen-title sb-glitch" data-text={t("app.screenTitle")}>
-              {t("app.screenTitle")}
-            </h1>
-            <p className="tagline">{t("app.tagline")}</p>
-          </div>
-          <div className="toolbar">
-            <button className="icon-btn" onClick={toggleMute} aria-label="toggle sound">
-              {muted ? <VolumeOffIcon /> : <VolumeOnIcon />}
-            </button>
-            <div className="lang-switch">
-              {LANGS.map((lng) => (
-                <button
-                  key={lng}
-                  className={i18n.language.startsWith(lng) ? "active" : ""}
-                  onClick={() => changeLang(lng)}
-                >
-                  {lng.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-        </header>
-
-        <PrimaryButton onClick={chooseSave}>{t("app.chooseSave")}</PrimaryButton>
-
-        {error && <p className="error">{t("error", { message: error })}</p>}
-        {inspection && (
-          <>
-            <p className="sb-status">
-              <Typewriter key={inspection.sha256} text={t("system.decoded")} />
-            </p>
-            <VaultCard inspection={inspection} />
-          </>
-        )}
+        {content}
       </TerminalFrame>
     </div>
   );
