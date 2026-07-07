@@ -1,0 +1,32 @@
+.sb-hash {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  font-family: var(--sb-font-mono);
+  font-size: 0.75rem;
+  color: var(--sb-text-mute);
+  background: var(--sb-bg-panel-2);
+  border: 1px solid var(--sb-phosphor-dim);
+  border-radius: var(--sb-radius-sm);
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+}
+
+.sb-hash:hover {
+  border-color: var(--sb-phosphor);
+}
+
+.sb-hash code {
+  word-break: break-all;
+  text-align: left;
+}
+
+.sb-hash-label {
+  flex-shrink: 0;
+  color: var(--sb-phosphor-dim);
+}
+
+.sb-hash-copied {
+  color: var(--sb-phosphor);
+}

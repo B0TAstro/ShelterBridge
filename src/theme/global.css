@@ -1,0 +1,88 @@
+/* Base styles applied app-wide. Depends on tokens.css (imported first). */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--sb-bg-deep);
+  color: var(--sb-text-soft);
+  font-family: var(--sb-font-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--sb-font-mono);
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 10px var(--sb-glow);
+}
+
+/* Subtle CRT scanline overlay with a faint flicker. Ignores clicks. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.5;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--sb-grid-line) 0,
+    var(--sb-grid-line) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  animation: sb-flicker 7s infinite steps(60);
+}
+
+/* CRT vignette: darkens the screen edges for a curved-tube feel. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.5) 100%);
+}
+
+@keyframes sb-flicker {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  48% {
+    opacity: 0.44;
+  }
+  50% {
+    opacity: 0.56;
+  }
+  92% {
+    opacity: 0.47;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

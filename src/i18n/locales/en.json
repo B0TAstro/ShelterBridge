@@ -1,6 +1,7 @@
 {
   "app": {
     "title": "ShelterBridge",
+    "screenTitle": "Save analysis",
     "tagline": "Import a Vault*.sav file to inspect it. Your original file is never modified.",
     "chooseSave": "Choose a save file…"
   },
@@ -18,5 +19,8 @@
     "lunchboxes": "Lunchboxes",
     "gameVersion": "Game version"
   },
-  "error": "Error: {{message}}"
+  "error": "Error: {{message}}",
+  "system": {
+    "decoded": "> Vault data decoded — original file untouched."
+  }
 }

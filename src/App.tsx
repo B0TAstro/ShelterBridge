@@ -2,27 +2,16 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
+import { PrimaryButton } from "./components/PrimaryButton";
+import { VaultCard } from "./components/VaultCard";
+import { BootSequence } from "./components/BootSequence";
+import { Typewriter } from "./components/Typewriter";
+import { TerminalFrame } from "./components/TerminalFrame";
+import { Clock } from "./components/Clock";
+import { VolumeOnIcon, VolumeOffIcon } from "./components/icons";
+import { isMuted, setMuted, playBoot, playClick, playConfirm, playError } from "./lib/sound";
+import type { SaveInspection } from "./types";
 import "./App.css";
-
-type VaultInfo = {
-  vault_name: string;
-  app_version: string | null;
-  dweller_count: number;
-  caps: number;
-  food: number;
-  water: number;
-  power: number;
-  stimpaks: number;
-  radaway: number;
-  nuka_quantum: number;
-  mr_handy: number;
-  lunchboxes: number;
-};
-
-type SaveInspection = {
-  sha256: string;
-  vault: VaultInfo;
-};
 
 const LANGS = ["en", "fr"] as const;
 
@@ -30,8 +19,11 @@ function App() {
   const { t, i18n } = useTranslation();
   const [inspection, setInspection] = useState<SaveInspection | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [booted, setBooted] = useState(false);
+  const [muted, setMutedState] = useState(isMuted());
 
   async function chooseSave() {
+    playClick();
     setError(null);
     const path = await open({
       multiple: false,
@@ -41,9 +33,11 @@ function App() {
 
     try {
       setInspection(await invoke<SaveInspection>("read_save", { path }));
+      playConfirm();
     } catch (e) {
       setInspection(null);
       setError(String(e));
+      playError();
     }
   }
 
@@ -52,73 +46,72 @@ function App() {
     localStorage.setItem("lang", lng);
   }
 
-  // Format numbers with the active locale (e.g. 15,349 vs 15 349).
-  const nf = (n: number) => n.toLocaleString(i18n.language);
+  function toggleMute() {
+    const next = !muted;
+    setMuted(next);
+    setMutedState(next);
+  }
+
+  if (!booted) {
+    return (
+      <BootSequence
+        onDone={() => {
+          playBoot();
+          setBooted(true);
+        }}
+      />
+    );
+  }
 
   return (
-    <main className="container">
-      <div className="lang-switch">
-        {LANGS.map((lng) => (
-          <button
-            key={lng}
-            className={i18n.language.startsWith(lng) ? "active" : ""}
-            onClick={() => changeLang(lng)}
-          >
-            {lng.toUpperCase()}
-          </button>
-        ))}
-      </div>
+    <div className="sb-app">
+      <TerminalFrame
+        title="SHELTERBRIDGE // LOCAL VAULT INTERFACE"
+        footer={
+          <>
+            <span>LOCAL-FIRST · NO NETWORK</span>
+            <Clock />
+          </>
+        }
+      >
+        <header className="app-header">
+          <div className="brand">
+            <h1 className="screen-title sb-glitch" data-text={t("app.screenTitle")}>
+              {t("app.screenTitle")}
+            </h1>
+            <p className="tagline">{t("app.tagline")}</p>
+          </div>
+          <div className="toolbar">
+            <button className="icon-btn" onClick={toggleMute} aria-label="toggle sound">
+              {muted ? <VolumeOffIcon /> : <VolumeOnIcon />}
+            </button>
+            <div className="lang-switch">
+              {LANGS.map((lng) => (
+                <button
+                  key={lng}
+                  className={i18n.language.startsWith(lng) ? "active" : ""}
+                  onClick={() => changeLang(lng)}
+                >
+                  {lng.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+        </header>
 
-      <h1>{t("app.title")}</h1>
-      <p className="tagline">{t("app.tagline")}</p>
-      <button onClick={chooseSave}>{t("app.chooseSave")}</button>
+        <PrimaryButton onClick={chooseSave}>{t("app.chooseSave")}</PrimaryButton>
 
-      {error && <p className="error">{t("error", { message: error })}</p>}
-
-      {inspection && (
-        <section className="vault">
-          <h2>{t("vault.heading", { name: inspection.vault.vault_name })}</h2>
-          <ul>
-            <li>
-              {t("vault.dwellers")}: {inspection.vault.dweller_count}
-            </li>
-            <li>
-              {t("vault.caps")}: {nf(inspection.vault.caps)}
-            </li>
-            <li>
-              {t("vault.food")}: {nf(inspection.vault.food)}
-            </li>
-            <li>
-              {t("vault.water")}: {nf(inspection.vault.water)}
-            </li>
-            <li>
-              {t("vault.power")}: {nf(inspection.vault.power)}
-            </li>
-            <li>
-              {t("vault.stimpaks")}: {inspection.vault.stimpaks}
-            </li>
-            <li>
-              {t("vault.radaway")}: {inspection.vault.radaway}
-            </li>
-            <li>
-              {t("vault.quantum")}: {inspection.vault.nuka_quantum}
-            </li>
-            <li>
-              {t("vault.mrHandy")}: {inspection.vault.mr_handy}
-            </li>
-            <li>
-              {t("vault.lunchboxes")}: {inspection.vault.lunchboxes}
-            </li>
-            {inspection.vault.app_version && (
-              <li>
-                {t("vault.gameVersion")}: {inspection.vault.app_version}
-              </li>
-            )}
-          </ul>
-          <p className="hash">SHA-256: {inspection.sha256}</p>
-        </section>
-      )}
-    </main>
+        {error && <p className="error">{t("error", { message: error })}</p>}
+        {inspection && (
+          <>
+            <p className="sb-status">
+              <Typewriter key={inspection.sha256} text={t("system.decoded")} />
+            </p>
+            <VaultCard inspection={inspection} />
+          </>
+        )}
+      </TerminalFrame>
+    </div>
   );
 }
 

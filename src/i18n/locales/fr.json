@@ -1,6 +1,7 @@
 {
   "app": {
     "title": "ShelterBridge",
+    "screenTitle": "Analyse de sauvegarde",
     "tagline": "Importez un fichier Vault*.sav pour l'inspecter. Votre fichier original n'est jamais modifié.",
     "chooseSave": "Choisir un fichier de sauvegarde…"
   },
@@ -18,5 +19,8 @@
     "lunchboxes": "Boîtes-repas",
     "gameVersion": "Version du jeu"
   },
-  "error": "Erreur : {{message}}"
+  "error": "Erreur : {{message}}",
+  "system": {
+    "decoded": "> Données de l'abri décodées — fichier original intact."
+  }
 }
