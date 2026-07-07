@@ -1,9 +1,5 @@
-//! Reading, decrypting and parsing Fallout Shelter save files.
-//!
-//! `Vault*.sav` files are AES-256-CBC encrypted JSON, then Base64 encoded.
-//! The AES key is derived with PBKDF2-HMAC-SHA1 from fixed, community-known
-//! parameters (identical for every save). We only ever READ saves here — never
-//! write or modify the original.
+//! Read, decrypt and parse Fallout Shelter `Vault*.sav` files (read-only).
+//! Format: Base64( AES-256-CBC( JSON ) ), key = PBKDF2-HMAC-SHA1 of fixed params.
 
 use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, KeyIvInit};
 use base64::{engine::general_purpose::STANDARD, Engine as _};
@@ -11,45 +7,23 @@ use pbkdf2::pbkdf2_hmac;
 use serde::de::IgnoredAny;
 use serde::{Deserialize, Serialize};
 use sha1::Sha1;
+use sha2::{Digest, Sha256};
 
-/// Fixed decryption parameters documented by the Fallout Shelter community.
-/// The same values decrypt every save file.
+// Fixed parameters, identical for every Fallout Shelter save.
 const IV: [u8; 16] = *b"tu89geji340t89u2";
 const PBKDF2_PASSWORD: &[u8] = b"UGxheWVy";
 const PBKDF2_ROUNDS: u32 = 1000;
 
-/// A CBC decryptor specialised for AES-256.
 type Aes256CbcDec = cbc::Decryptor<aes::Aes256>;
 
-/// Decrypt the raw bytes of a `Vault*.sav` file into its JSON text.
-///
-/// Returns an error message if the input is not valid base64, cannot be
-/// decrypted, or is not valid UTF-8 — i.e. if it does not look like a real save.
-pub fn decrypt_save(raw: &[u8]) -> Result<String, String> {
-    // The file is base64 text. Drop any trailing newline/space, then decode it
-    // back into the raw encrypted bytes.
-    let trimmed = raw.trim_ascii_end();
-    let ciphertext = STANDARD
-        .decode(trimmed)
-        .map_err(|e| format!("not valid base64: {e}"))?;
-
-    // Derive the 32-byte AES key. Password, salt (the IV) and rounds are all
-    // fixed, so this always yields the same key — but deriving it keeps the
-    // code self-documenting rather than hiding a magic constant.
-    let mut key = [0u8; 32];
-    pbkdf2_hmac::<Sha1>(PBKDF2_PASSWORD, &IV, PBKDF2_ROUNDS, &mut key);
-
-    // AES-256-CBC decrypt, and strip the PKCS7 padding, in a single call.
-    let plaintext = Aes256CbcDec::new(&key.into(), &IV.into())
-        .decrypt_padded_vec_mut::<Pkcs7>(&ciphertext)
-        .map_err(|e| format!("decryption failed (wrong key/IV/rounds?): {e}"))?;
-
-    // The decrypted bytes should be UTF-8 JSON.
-    String::from_utf8(plaintext).map_err(|e| format!("decrypted data is not UTF-8: {e}"))
+/// SHA-256 (of the source file) plus the parsed Vault info.
+#[derive(Debug, Clone, Serialize)]
+pub struct SaveInspection {
+    pub sha256: String,
+    pub vault: VaultInfo,
 }
 
-/// The subset of a Vault's data we reliably parse and show to the user.
-/// Resource amounts are stored as floats in the save; we round them for display.
+/// The reliable fields we display for a Vault. Resource amounts are rounded.
 #[derive(Debug, Clone, Serialize)]
 pub struct VaultInfo {
     pub vault_name: String,
@@ -66,14 +40,34 @@ pub struct VaultInfo {
     pub lunchboxes: u32,
 }
 
+/// Hash, decrypt and parse a save. Succeeding here means it is a valid save.
+pub fn inspect_save(raw: &[u8]) -> Result<SaveInspection, String> {
+    let sha256 = sha256_hex(raw);
+    let json = decrypt_save(raw)?;
+    let vault = parse_vault(&json)?;
+    Ok(SaveInspection { sha256, vault })
+}
+
+/// Decrypt raw `.sav` bytes into their JSON text.
+pub fn decrypt_save(raw: &[u8]) -> Result<String, String> {
+    let ciphertext = STANDARD
+        .decode(raw.trim_ascii_end())
+        .map_err(|e| format!("not valid base64: {e}"))?;
+
+    // Password, salt and rounds are fixed, so the derived key is always the same.
+    let mut key = [0u8; 32];
+    pbkdf2_hmac::<Sha1>(PBKDF2_PASSWORD, &IV, PBKDF2_ROUNDS, &mut key);
+
+    let plaintext = Aes256CbcDec::new(&key.into(), &IV.into())
+        .decrypt_padded_vec_mut::<Pkcs7>(&ciphertext)
+        .map_err(|e| format!("decryption failed: {e}"))?;
+
+    String::from_utf8(plaintext).map_err(|e| format!("decrypted data is not UTF-8: {e}"))
+}
+
 /// Parse the decrypted JSON into the reliable fields we display.
-///
-/// Only the fields we trust are extracted; everything else in the save is
-/// ignored. Returns an error if the JSON doesn't have the expected shape.
 pub fn parse_vault(json: &str) -> Result<VaultInfo, String> {
     let raw: RawSave = serde_json::from_str(json).map_err(|e| format!("invalid save JSON: {e}"))?;
-
-    // Destructure the parsed data so we can move fields out cleanly.
     let RawSave {
         vault,
         dwellers,
@@ -102,9 +96,14 @@ pub fn parse_vault(json: &str) -> Result<VaultInfo, String> {
     })
 }
 
-// --- Internal shapes matching the raw save JSON ---------------------------
-// We only declare the fields we need; serde ignores every other key in the
-// save. `#[serde(rename)]` maps our snake_case fields to the game's key names.
+fn sha256_hex(raw: &[u8]) -> String {
+    Sha256::digest(raw)
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect()
+}
+
+// Raw JSON shapes. Only the declared fields are read; serde ignores the rest.
 
 #[derive(Deserialize)]
 struct RawSave {
@@ -150,7 +149,6 @@ struct RawResources {
 
 #[derive(Deserialize)]
 struct RawDwellers {
-    // We only need the number of dwellers, so ignore each element's contents.
     dwellers: Vec<IgnoredAny>,
 }
 
@@ -160,9 +158,8 @@ mod tests {
     use std::path::Path;
 
     #[test]
-    fn decrypts_and_parses_real_save() {
-        // Uses a real save from dev-saves/ (gitignored). Skips gracefully when
-        // the file is absent (e.g. on CI or a fresh clone).
+    fn inspects_real_save() {
+        // Real save from dev-saves/ (gitignored); skips when absent (CI/clone).
         let path = Path::new("../dev-saves/Vault1.sav");
         if !path.exists() {
             eprintln!("skipping: {} not found", path.display());
@@ -170,11 +167,13 @@ mod tests {
         }
 
         let raw = std::fs::read(path).expect("read save file");
-        let json = decrypt_save(&raw).expect("decrypt save");
-        assert!(json.trim_start().starts_with('{'), "expected a JSON object");
+        let inspection = inspect_save(&raw).expect("inspect save");
 
-        let info = parse_vault(&json).expect("parse vault");
-        assert!(info.dweller_count > 0, "expected at least one dweller");
-        println!("Parsed VaultInfo:\n{info:#?}");
+        assert_eq!(inspection.sha256.len(), 64, "sha256 must be 64 hex chars");
+        assert!(
+            inspection.vault.dweller_count > 0,
+            "expected at least one dweller"
+        );
+        println!("{inspection:#?}");
     }
 }
