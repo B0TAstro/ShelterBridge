@@ -18,6 +18,12 @@ export type SaveInspection = {
   vault: VaultInfo;
 };
 
+export type FoundSave = {
+  path: string;
+  file: string;
+  inspection: SaveInspection;
+};
+
 export type TransferReport = {
   stamp: string;
   source_file: string;

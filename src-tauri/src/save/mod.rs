@@ -48,6 +48,46 @@ pub fn inspect_save(raw: &[u8]) -> Result<SaveInspection, String> {
     Ok(SaveInspection { sha256, vault })
 }
 
+/// A valid save file found on disk during a scan.
+#[derive(Debug, Serialize)]
+pub struct FoundSave {
+    pub path: String,
+    pub file: String,
+    pub inspection: SaveInspection,
+}
+
+/// Scan a directory for valid Fallout Shelter saves (`*.sav` / `*.sav.bkp`).
+/// Files that don't decrypt/parse are skipped; a missing directory yields [].
+pub fn scan_dir(dir: &std::path::Path) -> Vec<FoundSave> {
+    let mut found = Vec::new();
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return found;
+    };
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if !path.is_file() {
+            continue;
+        }
+        let lower = entry.file_name().to_string_lossy().to_lowercase();
+        if !(lower.ends_with(".sav") || lower.ends_with(".sav.bkp")) {
+            continue;
+        }
+        if let Ok(bytes) = std::fs::read(&path) {
+            if let Ok(inspection) = inspect_save(&bytes) {
+                found.push(FoundSave {
+                    path: path.to_string_lossy().into_owned(),
+                    file: entry.file_name().to_string_lossy().into_owned(),
+                    inspection,
+                });
+            }
+        }
+    }
+
+    found.sort_by(|a, b| a.file.cmp(&b.file));
+    found
+}
+
 /// Decrypt raw `.sav` bytes into their JSON text.
 pub fn decrypt_save(raw: &[u8]) -> Result<String, String> {
     let ciphertext = STANDARD
@@ -175,5 +215,18 @@ mod tests {
             "expected at least one dweller"
         );
         println!("{inspection:#?}");
+    }
+
+    #[test]
+    fn scans_a_directory_of_saves() {
+        let dir = Path::new("../dev-saves");
+        if !dir.exists() {
+            eprintln!("skipping: {} not found", dir.display());
+            return;
+        }
+        let found = scan_dir(dir);
+        assert!(!found.is_empty(), "expected to find at least one save");
+        let names: Vec<&String> = found.iter().map(|f| &f.file).collect();
+        println!("Found {} save(s): {names:?}", found.len());
     }
 }

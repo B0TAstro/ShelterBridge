@@ -53,6 +53,21 @@ fn list_history(app: tauri::AppHandle) -> Result<Vec<backup::TransferReport>, St
     history::read(&history_path(&app)?)
 }
 
+/// Scan for local Fallout Shelter saves. With no `dir`, uses the default Steam
+/// location (`%LOCALAPPDATA%\FalloutShelter` on Windows). Returns [] if none.
+#[tauri::command]
+fn scan_saves(app: tauri::AppHandle, dir: Option<String>) -> Result<Vec<save::FoundSave>, String> {
+    let scan_dir = match dir {
+        Some(d) => PathBuf::from(d),
+        None => app
+            .path()
+            .local_data_dir()
+            .map_err(|e| format!("cannot locate local data dir: {e}"))?
+            .join("FalloutShelter"),
+    };
+    Ok(save::scan_dir(&scan_dir))
+}
+
 /// Open a folder in the OS file manager (Finder / Explorer / files).
 /// Runs via the opener plugin from Rust, so it needs no JS-side permission.
 #[tauri::command]
@@ -72,6 +87,7 @@ pub fn run() {
             read_save,
             prepare_transfer,
             list_history,
+            scan_saves,
             open_folder
         ])
         .run(tauri::generate_context!())

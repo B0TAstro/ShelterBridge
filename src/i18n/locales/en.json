@@ -10,7 +10,11 @@
   },
   "inspect": {
     "transferCta": "Vault transfer",
-    "clear": "Clear save"
+    "clear": "Clear save",
+    "scan": "Scan this computer",
+    "scanFolder": "Scan a folder…",
+    "scanning": "Scanning…",
+    "noSaves": "No local Fallout Shelter saves found. Import one manually."
   },
   "report": {
     "screenTitle": "Transfer report"

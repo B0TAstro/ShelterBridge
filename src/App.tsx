@@ -55,6 +55,12 @@ function App() {
     setLoadError(null);
   }
 
+  function selectSave(path: string, insp: SaveInspection) {
+    setSourcePath(path);
+    setInspection(insp);
+    setLoadError(null);
+  }
+
   function changeLang(lng: string) {
     void i18n.changeLanguage(lng);
     localStorage.setItem("lang", lng);
@@ -121,6 +127,7 @@ function App() {
         onChoose={loadSave}
         onClear={clearSave}
         onGoTransfer={() => setScreen("transfer")}
+        onSelectSave={selectSave}
       />
     );
   }

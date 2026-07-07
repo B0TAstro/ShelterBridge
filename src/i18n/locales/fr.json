@@ -10,7 +10,11 @@
   },
   "inspect": {
     "transferCta": "Transfert de vault",
-    "clear": "Retirer la save"
+    "clear": "Retirer la save",
+    "scan": "Scanner cet ordinateur",
+    "scanFolder": "Scanner un dossier…",
+    "scanning": "Analyse en cours…",
+    "noSaves": "Aucune save Fallout Shelter locale détectée. Importe-en une manuellement."
   },
   "report": {
     "screenTitle": "Rapport de transfert"
