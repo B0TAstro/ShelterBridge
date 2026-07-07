@@ -96,7 +96,7 @@ pub fn parse_vault(json: &str) -> Result<VaultInfo, String> {
     })
 }
 
-fn sha256_hex(raw: &[u8]) -> String {
+pub fn sha256_hex(raw: &[u8]) -> String {
     Sha256::digest(raw)
         .iter()
         .map(|b| format!("{b:02x}"))
