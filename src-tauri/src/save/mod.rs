@@ -1,4 +1,4 @@
-//! Reading and decrypting Fallout Shelter save files.
+//! Reading, decrypting and parsing Fallout Shelter save files.
 //!
 //! `Vault*.sav` files are AES-256-CBC encrypted JSON, then Base64 encoded.
 //! The AES key is derived with PBKDF2-HMAC-SHA1 from fixed, community-known
@@ -8,6 +8,8 @@
 use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, KeyIvInit};
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 use pbkdf2::pbkdf2_hmac;
+use serde::de::IgnoredAny;
+use serde::{Deserialize, Serialize};
 use sha1::Sha1;
 
 /// Fixed decryption parameters documented by the Fallout Shelter community.
@@ -46,13 +48,119 @@ pub fn decrypt_save(raw: &[u8]) -> Result<String, String> {
     String::from_utf8(plaintext).map_err(|e| format!("decrypted data is not UTF-8: {e}"))
 }
 
+/// The subset of a Vault's data we reliably parse and show to the user.
+/// Resource amounts are stored as floats in the save; we round them for display.
+#[derive(Debug, Clone, Serialize)]
+pub struct VaultInfo {
+    pub vault_name: String,
+    pub app_version: Option<String>,
+    pub dweller_count: usize,
+    pub caps: u64,
+    pub food: u64,
+    pub water: u64,
+    pub power: u64,
+    pub stimpaks: u32,
+    pub radaway: u32,
+    pub nuka_quantum: u32,
+    pub mr_handy: u32,
+    pub lunchboxes: u32,
+}
+
+/// Parse the decrypted JSON into the reliable fields we display.
+///
+/// Only the fields we trust are extracted; everything else in the save is
+/// ignored. Returns an error if the JSON doesn't have the expected shape.
+pub fn parse_vault(json: &str) -> Result<VaultInfo, String> {
+    let raw: RawSave = serde_json::from_str(json).map_err(|e| format!("invalid save JSON: {e}"))?;
+
+    // Destructure the parsed data so we can move fields out cleanly.
+    let RawSave {
+        vault,
+        dwellers,
+        app_version,
+    } = raw;
+    let RawVault {
+        vault_name,
+        lunchboxes,
+        storage,
+    } = vault;
+    let res = storage.resources;
+
+    Ok(VaultInfo {
+        vault_name,
+        app_version: app_version.map(|v| v.trim().to_string()),
+        dweller_count: dwellers.dwellers.len(),
+        caps: res.caps.round() as u64,
+        food: res.food.round() as u64,
+        water: res.water.round() as u64,
+        power: res.power.round() as u64,
+        stimpaks: res.stimpaks.round() as u32,
+        radaway: res.radaway.round() as u32,
+        nuka_quantum: res.quantum.round() as u32,
+        mr_handy: res.mr_handy.round() as u32,
+        lunchboxes,
+    })
+}
+
+// --- Internal shapes matching the raw save JSON ---------------------------
+// We only declare the fields we need; serde ignores every other key in the
+// save. `#[serde(rename)]` maps our snake_case fields to the game's key names.
+
+#[derive(Deserialize)]
+struct RawSave {
+    vault: RawVault,
+    dwellers: RawDwellers,
+    #[serde(rename = "appVersion")]
+    app_version: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct RawVault {
+    #[serde(rename = "VaultName")]
+    vault_name: String,
+    #[serde(rename = "LunchBoxesCount")]
+    lunchboxes: u32,
+    storage: RawStorage,
+}
+
+#[derive(Deserialize)]
+struct RawStorage {
+    resources: RawResources,
+}
+
+#[derive(Deserialize)]
+struct RawResources {
+    #[serde(rename = "Nuka")]
+    caps: f64,
+    #[serde(rename = "Food")]
+    food: f64,
+    #[serde(rename = "Water")]
+    water: f64,
+    #[serde(rename = "Energy")]
+    power: f64,
+    #[serde(rename = "StimPack")]
+    stimpaks: f64,
+    #[serde(rename = "RadAway")]
+    radaway: f64,
+    #[serde(rename = "NukaColaQuantum")]
+    quantum: f64,
+    #[serde(rename = "MrHandy")]
+    mr_handy: f64,
+}
+
+#[derive(Deserialize)]
+struct RawDwellers {
+    // We only need the number of dwellers, so ignore each element's contents.
+    dwellers: Vec<IgnoredAny>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::path::Path;
 
     #[test]
-    fn decrypts_real_save_to_json() {
+    fn decrypts_and_parses_real_save() {
         // Uses a real save from dev-saves/ (gitignored). Skips gracefully when
         // the file is absent (e.g. on CI or a fresh clone).
         let path = Path::new("../dev-saves/Vault1.sav");
@@ -63,10 +171,10 @@ mod tests {
 
         let raw = std::fs::read(path).expect("read save file");
         let json = decrypt_save(&raw).expect("decrypt save");
-
-        // A Fallout Shelter save is a JSON object, so it must start with '{'.
         assert!(json.trim_start().starts_with('{'), "expected a JSON object");
-        let preview = &json[..json.len().min(200)];
-        println!("First 200 chars of decrypted JSON:\n{preview}");
+
+        let info = parse_vault(&json).expect("parse vault");
+        assert!(info.dweller_count > 0, "expected at least one dweller");
+        println!("Parsed VaultInfo:\n{info:#?}");
     }
 }
