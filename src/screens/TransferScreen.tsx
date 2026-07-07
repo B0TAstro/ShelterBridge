@@ -5,13 +5,7 @@ import type { TransferReport, VaultInfo } from "../types";
 import { PrimaryButton } from "../components/shared";
 import { SlotSelector, VaultRecap } from "../components/vault";
 import { playClick, playConfirm, playError } from "../lib/sound";
-
-/** Filesystem-safe timestamp for the backup folder, e.g. 2026-07-07_21-09-25. */
-function makeStamp(): string {
-  const d = new Date();
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}-${p(d.getMinutes())}-${p(d.getSeconds())}`;
-}
+import { makeStamp } from "../lib/stamp";
 
 /** Screen 2: pick a target slot for the save loaded on the previous screen. */
 export function TransferScreen({

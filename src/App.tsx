@@ -10,10 +10,18 @@ import { TransferScreen } from "./screens/TransferScreen";
 import { ReportScreen } from "./screens/ReportScreen";
 import { HistoryScreen } from "./screens/HistoryScreen";
 import { isMuted, setMuted, playBoot, playClick, playConfirm, playError } from "./lib/sound";
+import { makeStamp } from "./lib/stamp";
 import type { SaveInspection, TransferReport } from "./types";
 
 const LANGS = ["en", "fr"] as const;
 type Screen = "inspect" | "transfer" | "report" | "history";
+
+/** Guess a target slot (1-3) from a save filename, defaulting to 1. */
+function deriveSlot(path: string): number {
+  const name = path.split(/[/\\]/).pop() ?? "";
+  const match = /Vault([123])\.sav/i.exec(name);
+  return match ? Number(match[1]) : 1;
+}
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -115,15 +123,8 @@ function App() {
         }}
       />
     );
-  } else if (screen === "report") {
-    content = (
-      <ReportScreen
-        report={report}
-        inspection={inspection}
-        sourcePath={sourcePath}
-        onBack={() => setScreen(report ? "transfer" : "inspect")}
-      />
-    );
+  } else if (screen === "report" && report) {
+    content = <ReportScreen report={report} onBack={() => setScreen("inspect")} />;
   } else if (screen === "history") {
     content = <HistoryScreen onBack={() => setScreen("inspect")} />;
   } else {
@@ -134,14 +135,29 @@ function App() {
         onChoose={loadSave}
         onClear={clearSave}
         onSelectSave={selectSave}
-        onGoTransfer={(detected) => {
+        onGoTransfer={async (detected) => {
           if (detected) {
+            // Game installed → let the user pick a target slot.
             setScreen("transfer");
-          } else {
-            // No game detected → nothing is prepared: show the manual guide,
-            // never a stale report.
-            setReport(null);
+            return;
+          }
+          // No game installed → prepare a dedicated backup folder automatically
+          // (the user never handles raw files) and show the report.
+          if (!sourcePath) return;
+          playClick();
+          setLoadError(null);
+          try {
+            const r = await invoke<TransferReport>("prepare_transfer", {
+              sourcePath,
+              slot: deriveSlot(sourcePath),
+              stamp: makeStamp(),
+            });
+            setReport(r);
             setScreen("report");
+            playConfirm();
+          } catch (e) {
+            setLoadError(String(e));
+            playError();
           }
         }}
       />
