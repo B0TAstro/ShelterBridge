@@ -27,16 +27,18 @@
     "empty": "Aucun transfert pour l'instant."
   },
   "guide": {
-    "title": "Transférer vers ton iPhone (Finder)",
+    "title": "Transférer vers ton iPhone (iMazing)",
+    "intro": "Fallout Shelter ne partage pas ses fichiers via le Finder. La méthode fiable passe par iMazing, qui accède aux données de l'app via une sauvegarde.",
     "steps": [
-      "Branche ton iPhone à ce Mac avec un câble.",
-      "Déverrouille l'iPhone et touche « Se fier à cet ordinateur » si demandé.",
+      "Installe iMazing sur ce Mac (essai gratuit) et lance-le.",
+      "Branche ton iPhone en USB, déverrouille-le et touche « Se fier » si demandé.",
       "Ferme complètement Fallout Shelter sur l'iPhone.",
-      "Ouvre le Finder et sélectionne ton iPhone dans la barre latérale.",
-      "Ouvre la section « Fichiers » (partage de fichiers).",
-      "Sélectionne Fallout Shelter dans la liste des apps.",
-      "Glisse le VaultX.sav préparé dans les documents de l'app.",
-      "Lance Fallout Shelter sur l'iPhone et vérifie le slot."
+      "Dans iMazing, sélectionne ton iPhone puis lance une Sauvegarde.",
+      "Ouvre « Système de fichiers », déplie Fallout Shelter → dossier Documents.",
+      "Repère le VaultX.sav de l'iPhone (celui à remplacer) et fais-en une copie de secours.",
+      "Glisse le VaultX.sav préparé par ShelterBridge par-dessus (depuis le dossier ouvert).",
+      "Confirme : iMazing réécrit les données sur l'iPhone via une restauration.",
+      "Lance Fallout Shelter et vérifie le slot."
     ]
   },
   "vault": {

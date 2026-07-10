@@ -358,6 +358,14 @@ body::after {
   gap: 0.75rem;
 }
 
+.step-intro {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--sb-phosphor-dim, var(--sb-phosphor));
+  opacity: 0.85;
+}
+
 .step-progress {
   align-self: flex-end;
   font-family: var(--sb-font-mono);

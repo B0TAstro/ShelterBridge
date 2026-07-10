@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 /** A step list where each row is itself the toggle (no visible checkbox).
- * Shows a completed/total counter. */
-export function StepGuide({ steps }: { steps: string[] }) {
+ * Shows a completed/total counter. An optional intro explains the method. */
+export function StepGuide({ steps, intro }: { steps: string[]; intro?: string }) {
   const [done, setDone] = useState<boolean[]>(() => steps.map(() => false));
   const completed = done.filter(Boolean).length;
 
@@ -12,6 +12,7 @@ export function StepGuide({ steps }: { steps: string[] }) {
 
   return (
     <div className="step-guide">
+      {intro && <p className="step-intro">{intro}</p>}
       <div className="step-progress">
         {completed}/{steps.length}
       </div>

@@ -52,7 +52,7 @@ export function ReportScreen({ report, onBack }: { report: TransferReport; onBac
 
       {guideOpen && (
         <Modal title={t("guide.title")} onClose={() => setGuideOpen(false)}>
-          <StepGuide steps={steps} />
+          <StepGuide steps={steps} intro={t("guide.intro")} />
         </Modal>
       )}
     </section>
